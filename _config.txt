@@ -1,0 +1,200 @@
+/* dfs and bfs*/
+
+class Graph:
+    def __init__(self):
+        self.adjacency_list = {}
+
+    def add_edge(self, u, v):
+        if u not in self.adjacency_list:
+            self.adjacency_list[u] = []
+        if v not in self.adjacency_list:
+            self.adjacency_list[v] = []
+
+        self.adjacency_list[u].append(v)
+        self.adjacency_list[v].append(u)
+
+    def dfs_recursive(self, vertex, visited):
+        visited[vertex] = True
+        print(vertex, end=" ")
+
+        neighbors = self.adjacency_list[vertex]
+        for neighbor in neighbors:
+            if not visited[neighbor]:
+                self.dfs_recursive(neighbor, visited)
+
+    def dfs(self, start_vertex):
+        visited = {vertex: False for vertex in self.adjacency_list}
+        self.dfs_recursive(start_vertex, visited)
+
+    def bfs(self, start_vertex):
+        visited = {vertex: False for vertex in self.adjacency_list}
+        queue = [start_vertex]
+        visited[start_vertex] = True
+
+        while queue:
+            vertex = queue.pop(0)
+            print(vertex, end=" ")
+
+            neighbors = self.adjacency_list[vertex]
+            for neighbor in neighbors:
+                if not visited[neighbor]:
+                    queue.append(neighbor)
+                    visited[neighbor] = True
+
+
+# Example usage
+
+graph = Graph()
+
+# Get the number of vertices and edges from the user
+num_vertices = int(input("Enter the number of vertices: "))
+num_edges = int(input("Enter the number of edges: "))
+
+# Get the edges from the user and add them to the graph
+print("Enter the edges (u v) in the graph:")
+for _ in range(num_edges):
+    u, v = map(int, input().split())
+    graph.add_edge(u, v)
+
+# Get the starting vertex from the user
+start_vertex = int(input("Enter the starting vertex: "))
+
+# Perform DFS starting from the specified vertex
+print("Depth-First Search (DFS):")
+graph.dfs(start_vertex)
+print()
+
+# Perform BFS starting from the specified vertex
+print("Breadth-First Search (BFS):")
+graph.bfs(start_vertex)
+print()
+
+
+
+
+/***A* ***/
+
+
+class Node:
+    def __init__(self, state, parent=None, g_cost=float('inf'), h_cost=0):
+        self.state = state
+        self.parent = parent
+        self.g_cost = g_cost
+        self.h_cost = h_cost
+
+    def __lt__(self, other):
+        return (self.g_cost + self.h_cost) < (other.g_cost + other.h_cost)
+
+
+def get_path(node):
+    path = []
+    current_node = node
+    while current_node:
+        path.append(current_node.state)
+        current_node = current_node.parent
+    return path[::-1]
+
+
+def astar_search(initial_state, goal_state, get_neighbors_fn, heuristic_fn):
+    open_list = []
+    closed_list = set()
+
+    start_node = Node(initial_state, None, 0, heuristic_fn(initial_state))
+    open_list.append(start_node)
+
+    while open_list:
+        open_list.sort()
+        current_node = open_list.pop(0)
+
+        if current_node.state == goal_state:
+            return get_path(current_node)
+
+        closed_list.add(current_node.state)
+
+        neighbors = get_neighbors_fn(current_node.state)
+        for neighbor in neighbors:
+            if neighbor in closed_list:
+                continue
+
+            g_cost = current_node.g_cost + 1  # Assuming each move cost is 1
+            h_cost = heuristic_fn(neighbor)
+            neighbor_node = Node(neighbor, current_node, g_cost, h_cost)
+
+            in_open_list = False
+            for open_node in open_list:
+                if open_node.state == neighbor_node.state:
+                    in_open_list = True
+                    if neighbor_node.g_cost < open_node.g_cost:
+                        open_node.parent = current_node
+                        open_node.g_cost = neighbor_node.g_cost
+                    break
+
+            if not in_open_list:
+                open_list.append(neighbor_node)
+
+    return None
+
+
+# Example usage
+
+def get_neighbors(state):
+    x, y = state
+    neighbors = []
+
+    # Define the possible movements: up, down, left, right
+    movements = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+    for dx, dy in movements:
+        nx, ny = x + dx, y + dy
+        # Check if the new position is within the grid bounds
+        if 0 <= nx < grid_width and 0 <= ny < grid_height:
+            # Check if the new position is not an obstacle
+            if (nx, ny) not in obstacles:
+                neighbors.append((nx, ny))
+
+    return neighbors
+
+
+def heuristic(state):
+    x, y = state
+    goal_x, goal_y = goal_state
+    # Calculate the Manhattan distance as the heuristic
+    return abs(x - goal_x) + abs(y - goal_y)
+
+
+# Example input for a 2D grid-based game search problem
+
+# Define the grid size
+grid_width = 5
+grid_height = 5
+
+# Define the initial and goal states
+initial_state = (0, 0)  # Starting position
+goal_state = (4, 4)  # Goal position
+
+# Define the obstacles in the grid (if any)
+obstacles = [(1, 1), (2, 2), (3, 3)]  # List of obstacle positions
+
+path = astar_search(initial_state, goal_state, get_neighbors, heuristic)
+if path:
+    print("Path found:", path)
+else:
+    print("No path found.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
